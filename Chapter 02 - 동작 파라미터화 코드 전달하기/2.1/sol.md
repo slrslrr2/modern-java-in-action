@@ -211,4 +211,103 @@ List<Apple> redAndHeavyApples = filterApples(inventory, new AppleRedAndHavyPredi
 | 2. 프레디케이트 & 전략 디자인 패턴        | 주요 로직 캡슐화                                                     |
 | 3. 지연 실행                     | - 연산/자원 사용 최소화  <br> - 메모리 및 CPU 사용 효율화 <br> - 성능 최적화 및 빠른 응답 <br> - 초기화 순환성 문제 해결 <br> - 유연한 구조와 관심사의 분리 |
 
+## 번외. ThreadPoolTaskExecutor
+![image](https://github.com/user-attachments/assets/51fdc30a-0c75-4fca-a336-a57b84b45883)
+🤔 금빛님의 물음표에서 시작된 ThreadPoolTaskExecutor 정리
+
+> ThreadPoolTaskExecutor
+>> ThreadPoolTaskExecutor는 Spring에서 많이 사용하는 스레드 풀 관리 도구로, 세밀한 설정이 가능하고,<br>@Async, TaskScheduler, CompletableFuture, WebClient 등과 함께 사용하기 위해 Bean으로 등록해두고 활용함<br>
+>> 개발자 → ThreadPoolTaskExecutor ← 내부적으로 ThreadPoolExecutor 사용 (JDK)<br>
+
+### 1) 다른 대안들과의 비교
+| 이름                       | 설명                            | 언제 사용?                         |
+|----------------------------|---------------------------------|------------------------------------|
+| ThreadPoolExecutor         | Java 기본 제공. 가장 세밀한 설정 가능. | 스프링 안 쓰거나, 아주 커스터마이징할 때 |
+| Executors.newFixedThreadPool() 등 | 간편하게 쓸 수 있는 팩토리 메서드       | 테스트용, 간단한 병렬 처리                |
+| ForkJoinPool               | 병렬 작업을 자동으로 분할해서 실행       | CPU 중심의 계산작업 (예: 그래픽 처리)     |
+| ScheduledThreadPoolExecutor| 예약된 작업 (스케줄링)                 | 일정 시간마다 작업 실행할 때              |
+
+### 2) 장점
+| 기능       | 설명                                              |
+| -------- | ----------------------------------------------- |
+| 성능 제어    | 동시에 실행할 수 있는 작업 수를 설정하여 서버 과부하 방지               |
+| 예외 처리    | CompletableFuture로 try-catch 없이 체계적인 예외 처리 가능 |
+| 응답 속도 개선 | 병렬 처리를 통해 여러 요청을 동시에 빠르게 처리 가능                  |
+| 재사용성     | 스레드 풀을 Bean으로 등록해 여러 서비스에서 재사용 가능               |
+
+### 3) 간단한 코드 예시
+<details>
+  <summary> ThreadPoolTaskExecutor의 간단한 코드 </summary><br>
+  
+  ```java
+  // 1. ThreadPoolTaskExecutor 설정 (스프링 빈 등록)
+  // AsyncConfig.java
+  @Configuration
+  public class AsyncConfig {
+  
+      @Bean(name = "customExecutor")
+      public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
+          ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+          executor.setCorePoolSize(4);         // 최소 스레드 수
+          executor.setMaxPoolSize(8);          // 최대 스레드 수
+          executor.setQueueCapacity(50);       // 큐에 대기 가능한 작업 수
+          executor.setThreadNamePrefix("CustomExecutor-");
+          executor.initialize();               // 초기화 필수
+          return executor;
+      }
+  }
+
+// 2. 서비스 로직에서 CompletableFuture와 함께 사용
+// MyAsyncService.java
+@Service
+public class MyAsyncService {
+
+    private final ThreadPoolTaskExecutor executor;
+
+    public MyAsyncService(@Qualifier("customExecutor") ThreadPoolTaskExecutor executor) {
+        this.executor = executor;
+    }
+
+    public CompletableFuture<String> asyncTask(String input) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("비동기 작업 시작: {}", input);
+            try {
+                Thread.sleep(1000); // 실제 작업 시뮬레이션
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            }
+            return "처리 완료: " + input;
+        }, executor);
+    }
+}
+
+// 3. 컨트롤러에서 호출
+// MyController.java
+@RestController
+@RequestMapping("/api")
+public class MyController {
+
+    private final MyAsyncService asyncService;
+
+    public MyController(MyAsyncService asyncService) {
+        this.asyncService = asyncService;
+    }
+
+    @GetMapping("/process")
+    public CompletableFuture<ResponseEntity<String>> process(@RequestParam String input) {
+        return asyncService.asyncTask(input)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.status(500).body("에러 발생: " + ex.getMessage()));
+    }
+}
+
+  
+  ```
+
+</details>
+
+DOTO 졸려서 내일 이어서 정리해보겠음
+### 4) 왜 @Async보다 더 유연하고 제어 가능할까?
+### 5) 왜 실무에서 API 호출, 대용량 데이터 처리, 외부 연동 등에 자주 쓰일까?
+
 
