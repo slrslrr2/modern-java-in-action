@@ -321,7 +321,7 @@ public void sendEmail(String email) {
   
 </details>
 
-🤔 @Async vs CompletableFuture + Executor
+💡 @Async vs CompletableFuture + Executor
 | 비교 항목                 | @Async                              | CompletableFuture + Executor            |
 | --------------------- | ------------------------------------- | ----------------------------------------- |
 | **스레드 제어**            | 제한적 (자동 지정된 Executor 또는 한 개 설정 가능)    | 직접 만든 Executor를 마음대로 지정 가능                |
@@ -330,8 +330,8 @@ public void sendEmail(String email) {
 | **병렬 작업 합치기**         | 불편하고 제한적                              | allOf, anyOf 등으로 쉽게 병렬 조합 가능          |
 | **작업 시간 측정, 타임아웃 설정** | 복잡                                    | orTimeout, completeOnTimeout 등 쉽게 가능  |
 
-💡 ThreadPoolTaskExecutor: 세밀한 제어 가능
-💡 CompletableFuture: Executor를 직접 지정할 수 있고, 반환값 조합이나 예외 처리에 훨씬 강력한 기능을 제공
+✔︎ ThreadPoolTaskExecutor: 세밀한 제어 가능<br>
+✔︎ CompletableFuture: Executor를 직접 지정할 수 있고, 반환값 조합이나 예외 처리에 훨씬 강력한 기능을 제공
 
 <details>
   <summary> 비교 예시 코드 </summary>
@@ -351,10 +351,9 @@ CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> work2(),
   
 </details>
 
-
 ### 5) 왜 실무에서 API 호출, 대용량 데이터 처리, 외부 연동 등에 자주 쓰일까?
-💡 비동기 + 병렬 처리: 동시에 여러 작업을 빠르게 처리할 수 있고,
-💡 서로 다른 Executor 사용(자원 분리): API, 데이터, 외부 시스템과의 연동에서 성능과 안정성을 확보할 수 있음
+✔︎ 비동기 + 병렬 처리: 동시에 여러 작업을 빠르게 처리할 수 있고,<br>
+✔︎ 서로 다른 Executor 사용(자원 분리): API, 데이터, 외부 시스템과의 연동에서 성능과 안정성을 확보할 수 있음
 <details>
   <summary> 외부 API 여러 개 동시에 호출하기 </summary>
 
