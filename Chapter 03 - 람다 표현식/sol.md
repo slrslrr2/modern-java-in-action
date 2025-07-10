@@ -57,8 +57,9 @@ process(() -> System.out.println("Hello World 3"));
 ### 🤔 가장 깔끔할 것 같은 '실행 어라운드 패턴 + try-with-resources'를 사용하면 안되는 곳
 => 트랜잭션 관리
 - try-with-resources 구문에서는 catch 블록 진입 시점에 이미 자원이 close되어 있으므로,<br>conn.rollback()을 호출하면 예외가 발생할 수 있음
-- 트랜잭션의 rollback/commit은 try 블록 내에서 처리해야 하며,<br>catch 블록에서 처리하려면 전통적인 try-catch-finally 패턴을 사용해야 함
-=> 그러나 Spring에서는 서비스 계층에서 @Transactional로 처리하므로, 트랜잭션의 try-with-resources는 신경 쓸 필요가 없긴함ㅎ
+- 트랜잭션의 rollback/commit은 try 블록 내에서 처리해야 하며,<br>catch 블록에서 처리하려면 전통적인 try-catch-finally 패턴을 사용해야 함<br>
+
+**=> 그러나 Spring에서는 서비스 계층에서 @Transactional로 처리하므로, 트랜잭션의 try-with-resources는 신경 쓸 필요가 없긴함ㅎ**
 
 <details>
   <summary> 1. 전통적인 방식 </summary>
