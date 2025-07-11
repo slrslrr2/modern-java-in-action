@@ -8,7 +8,8 @@
 - **1.4 디폴트 메서드**
 - **1.5 함수형 프로그래밍**
 
---- 
+---  
+
 
 ## ✅ 함수형 인터페이스
 
@@ -20,13 +21,13 @@ public interface Predicate<T> {
 ```
 어떤 조건을 검사하여 true or false 로 반환함  
 
+
   
 ### 함수형 인터페이스란?
 
 - ⭐ 단 하나의 추상 메서드만 가지는 인터페이스
 - 람다식으로 해당 메서드를 구현 가능
-- `@FunctionalInterface` 어노테이션을 붙이면 컴파일러가 규칙을 체크해줌  
-
+- `@FunctionalInterface` 어노테이션을 붙이면 컴파일러가 규칙을 체크해줌
 
 | 인터페이스      | 설명                                 |
 |-----------------|--------------------------------------|
@@ -35,7 +36,8 @@ public interface Predicate<T> {
 | `Consumer<T>`   | T를 받아 소비하고 반환 없음 (`accept`)|
 | `Supplier<T>`   | 아무것도 받지 않고 T 반환 (`get`)     |
 | `Runnable`      | 매개변수와 반환값 없이 실행 (`run`)  |
-  
+
+
   
 ## ✅ 컬렉션API VS 스트림API
 
@@ -48,7 +50,8 @@ public interface Predicate<T> {
 | 병렬 처리        | 직접 구현 필요              | 병렬 처리 지원 (parallelStream) |
 | 재사용성         | 여러 번 탐색 가능           | 한 번만 탐색 가능              |
 | 연산 방식        | 명령형 프로그래밍           | 선언형 프로그래밍              |
-  
+
+
   
 컬렉션 방식
 ```java
@@ -59,10 +62,8 @@ for (Dish dish : menu) {
     }
 }
 ```  
-  
 스트림 방식
 ```java
-// 스트림 방식
 List<String> names = menu.stream()
     .filter(dish -> dish.getCalories() > 300)
     .map(Dish::getName)
