@@ -70,3 +70,51 @@ List<String> names = menu.stream()
     .collect(Collectors.toList());
 
 ```
+
+💎 다이아몬드 상속 구조란?
+
+
+```java
+   A
+  / \
+ B   C
+  \ /
+   D
+```
+
+클래스 B와 C는 A를 상속받고
+
+클래스 D는 B와 C를 상속받는 구조
+
+이렇게 되면 D는 A를 두 번 상속받게 되는 셈이라, A의 멤버에 접근할 때 모호성이 발생  
+예를 들어 D에서 A의 age라는 멤버를 사용하려고 하면, B를 통해 상속받은 age인지, C를 통해 상속받은 age인지 알 수 없게 된다 
+
+⚠️ 발생하는 문제들
+중복 멤버: A의 멤버가 D에 두 번 존재 
+
+Java 클래스의 다중 상속은 금지하지만, 인터페이스의 다중 구현은 허용 
+
+```java
+interface InterfaceA {
+    default void greet() {
+        System.out.println("Hello from A");
+    }
+}
+
+interface InterfaceB {
+    default void greet() {
+        System.out.println("Hello from B");
+    }
+}
+
+class MyClass implements InterfaceA, InterfaceB {
+    @Override
+    public void greet() {
+        // 충돌 해결: 명시적으로 호출
+        InterfaceA.super.greet();
+        InterfaceB.super.greet();
+    }
+}
+```
+
+
