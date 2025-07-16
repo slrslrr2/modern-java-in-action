@@ -1,4 +1,5 @@
-## 자바 람다 표현식 정리
+# Chanpter 03 - 람다 표현식 
+
 
 ###  람다 표현식이란?
 - 이름이 없는 함수 (익명 함수)
@@ -61,3 +62,63 @@ names.stream()
      .filter(name -> name.startsWith("A"))
      .forEach(System.out::println);
 ```
+
+
+
+# 람다, 메서드 참조 활용하기
+
+---
+
+## 코드 전달 방식
+
+✅ 3.7.1 코드 전달: 익명 클래스 → 람다 → 메서드 참조
+```java
+public class AppleComparator implements Comparator<Apple> {
+    public int compare(Apple a1, Apple a2) {
+        return a1.getWeight().compareTo(a2.getWeight());
+    }
+}
+inventory.sort(new AppleComparator());
+
+```
+-명시적으로 클래스를 생성해서 코드를 전달   
+-가장 전통적인 방식  
+
+
+✅ 3.7.2 익명 클래스 사용
+
+```java
+inventory.sort(new Comparator<Apple>() {
+    public int compare(Apple a1, Apple a2) {
+        return a1.getWeight().compareTo(a2.getWeight());
+    }
+});
+```
+
+- 클래스를 따로 선언하지 않고 익명 클래스로 구현  
+- 구현은 조금 더 간결하지만 여전히 반복되는 코드 존재  
+
+
+
+✅ 3.7.3 람다 표현식 사용 
+
+```java
+inventory.sort((Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()));
+```
+
+- 훨씬 간결하고 가독성 높은 코드  
+- 함수형 프로그래밍 스타일을 적극 활용  
+
+
+✅ 3.7.4 메서드 참조 활용
+
+```java
+import static java.util.Comparator.comparing;
+
+inventory.sort(comparing(Apple::getWeight));
+```
+
+- 코드 간결성 극대화  
+- 재사용성과 가독성이 뛰어남  
+
+
