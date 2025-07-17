@@ -185,5 +185,191 @@ public class BookGiftCertificateCancelService implements PaymentCancelInPort { .
   
 </details>
 
+---
+## ✚ 금빛님의 🤔에서 시작된 정리
+<img width="918" height="263" alt="image" src="https://github.com/user-attachments/assets/cae5a7a6-989a-4ab0-9016-2027d634dacd" />
+
+### intro. 전통적인 factory 및 factory method pattern의 의미
+- 팩토리란: 객체를 생성하는 역할만 전담하는 클래스 또는 함수
+- 팩토리 메서드 패턴: (새로운 객체가 추가되어도 공통 코드를 수정하지 않도록) 객체 생성 방법을 서브클래스(자식 클래스)에 위임하는 디자인 패턴
+<details>
+  <summary> 간단한 예시: 새로운 핸드폰 타입이 생겨도, 새로운 팩토리만 만들면 나머지 코드를 고칠 필요 없이 확장 가능 </summary>
+
+  ```java
+  
+  // 제품 인터페이스
+  public interface Phone {
+      void call();
+  }
+  
+  // 제품 구현체
+  public class IPhone implements Phone {
+      public void call() {
+          System.out.println("아이폰으로 호출합니다.");
+      }
+  }
+  
+  public class AndroidPhone implements Phone {
+      public void call() {
+          System.out.println("안드로이드폰으로 호출합니다.");
+      }
+  }
+  
+  // 팩토리 인터페이스
+  public interface PhoneFactory {
+      // 팩토리 메서드
+      Phone createPhone();
+      // 공통 사전처리, 후처리 메서드도 추가 가능
+      default Phone orderPhone() {
+          Phone phone = createPhone();
+          System.out.println("생산 완료!");
+          return phone;
+      }
+  }
+  
+  // 각 서브 클래스가 객체 생성 방식 결정
+  public class IPhoneFactory implements PhoneFactory {
+      public Phone createPhone() {
+          return new IPhone();
+      }
+  }
+  
+  public class AndroidPhoneFactory implements PhoneFactory {
+      public Phone createPhone() {
+          return new AndroidPhone();
+      }
+  }
+  
+  // 사용 예시
+  public class Practice {
+      public static void main(String[] args) {
+          PhoneFactory factory = new IPhoneFactory();
+          Phone phone = factory.orderPhone();
+          phone.call(); // 결과: 생산 완료! 아이폰으로 호출합니다.
+      }
+  }
+
+
+  ```  
+
+</details>
+<br>
+
+### 1. 팩토리 메서드 패턴이라고 생각한 이유
+- 팩토리의 **역할**인 '객체 생성' 자체는 Spring DI를 활용합니다.
+- 하지만, '객체 생성 로직을 캡슐화하여 결합도를 감소 시키고, 새로운 객체 추가 시 기존 코드 변경을 최소화 시키는 유연성 등' 팩토리 메서드 패턴의 **의도**부분에서 결이 같다고 생각했습니다.
+- 그래서 DI를 활용한 '변형된 혹은 발전된 팩토리 메서드 패턴'이라고 생각했습니다.
+- 이와 비슷한 예제로 정리해 놓은 url을 🎁 선물로 드립니다! (https://zorba91.tistory.com/306)
+<br>
+
+### 2. 기존 팩토리 메서드 패턴(GoF)과의 차이점
+| 항목       | 전통적인 Factory Method  | 지금 코드                       |
+| -------- | -------------------- | --------------------------- |
+| 객체 생성 책임 | Creator 서브클래스에 위임    | Spring이 생성하고, Finder가 선택    |
+| 핵심 역할    | 객체를 생성해 반환           | 등록된 전략 객체 중 선택하여 반환         |
+| 사용 방식    | `creator.create()`   | `finder.find(code)`         |
+| 패턴 구조    | 상속 기반                | 전략 매핑 기반                    |
+| 패턴 명칭    | Factory Method (GoF) | 전략 + 매핑 + Simple Factory 성격 |
+
+<br>
+
+### 3. 차이에 따른 코드 예제
+<details>
+  <summary> GoF의 팩토리 메서드 패턴 </summary>
+
+```java
+// Product interface
+interface PaymentProcessor {
+    void process();
+}
+
+// Concrete Products
+class KakaoPayProcessor implements PaymentProcessor {
+    public void process() {
+        System.out.println("KakaoPay 처리");
+    }
+}
+class TossPayProcessor implements PaymentProcessor {
+    public void process() {
+        System.out.println("TossPay 처리");
+    }
+}
+
+// Creator abstract class
+abstract class PaymentProcessorCreator {
+    public abstract PaymentProcessor createProcessor();
+}
+
+// Concrete Creator
+class KakaoPayProcessorCreator extends PaymentProcessorCreator {
+    public PaymentProcessor createProcessor() {
+        return new KakaoPayProcessor();
+    }
+}
+
+class TossPayProcessorCreator extends PaymentProcessorCreator {
+    public PaymentProcessor createProcessor() {
+        return new TossPayProcessor();
+    }
+}
+
+```
+
+```java
+PaymentProcessorCreator creator = new KakaoPayProcessorCreator();
+PaymentProcessor processor = creator.createProcessor();
+processor.process();  // KakaoPay 처리
+```
+  
+</details>
+
+<details>
+  <summary> DI + 팩토리 메서드 패턴 </summary>
+
+  ```java
+public class PaymentCancelFinder {
+
+    private final Map<PaymentCancelCode, PaymentCancelInPort> paymentCancelOutAdapter;
+
+    public PaymentCancelFinder(final List<PaymentCancelInPort> apiOutPorts) {
+        this.paymentCancelOutAdapter = apiOutPorts.stream()
+                .flatMap(apiOutPort -> apiOutPort.cancelPaymentLinkages().stream()
+                        .map(linkage -> new AbstractMap.SimpleEntry<>(linkage, apiOutPort)))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (existing, replacement) -> {
+                            throw new IllegalStateException(String.format("중복 키: %s", existing));
+                        },
+                        () -> new EnumMap<>(PaymentCancelCode.class)
+                ));
+    }
+
+    public PaymentCancelInPort find(PaymentCancelCode code) {
+        return paymentCancelOutAdapter.get(code);
+    }
+}
+  ```
+
+```java
+PaymentCancelInPort cancelHandler = paymentCancelFinder.find(PaymentCancelCode.KAKAO);
+cancelHandler.cancel();
+```
+
+</details>
+
+<br>
+
+### 4. GoF 대비 변형된 해당 패턴(Spring DI 기반 전략 선택기 + Simple Factory 성격)의 장점
+
+- 객체 생성을 개발자가 직접 관리하지 않아도 됨
+  - 생성 책임을 추상화 수준이 아닌, 프레임워크 수준에서 해결
+  - 전통 패턴에서는 개발자가 직접 생성 로직을 써야하고, 새로운 구현이 생기면 Creator 클래스 추가 필요
+- 유연하고 확장에 강한 구조
+  - PaymentCancelInPort 구현체만 추가하면 자동으로 매핑
+  - PaymentCancelFinder는 변경 없이 그대로 사용 가능(OCP원칙)
+  - GoF 패턴은 구현체 추가 시, ConcreteCreator도 만들어야 하고, Factory도 확장 필요
+- EnumMap을 활용하여 성능과 가독성 둘 다 향상 가능
+
 
 
